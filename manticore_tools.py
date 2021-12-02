@@ -160,7 +160,7 @@ def make_BSM_file_temp(input_string):
     with the data. Returns the same string with the dot
     between the file directory and its name."""
 
-    return input_string[:-12] + "." + input_string[-12:]
+    return input_string[:-12] + input_string[-12:] # TODO why the . is needed here?
 # =============================================================================
 #
 # =============================================================================
@@ -172,7 +172,7 @@ def make_PED_file_temp(input_string):
     with the pedestals. Returns the same string with the
     dot between the file directory and its name."""
 
-    return input_string[:-18] + "PED/." + input_string[-12:-4]
+    return input_string[:-18] + "PED/" + input_string[-12:-4]
 # =============================================================================
 #
 # =============================================================================
@@ -239,6 +239,7 @@ def what_time_is_now():
 #
 # =============================================================================
 
+# TODO not check_and_cut_the_tail, but line_break_char_cutter
 def check_and_cut_the_tail(line):
     """Cuts the '\n' symbols from the tail of the string.
 

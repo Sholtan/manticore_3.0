@@ -6,60 +6,11 @@ Created on Mon Apr 20 23:45:35 2020
 @author: yaroslav
 """
 import manticore_tools as tools
+import time # TODO why do we need It?
 
 MAX_EVENT_NUMBER = 0
 MIN_EVENT_NUMBER = 999999999999
-TOTAL_DICT_OF_DAYS = {}
-# =============================================================================
-#
-# =============================================================================
-
-def set_of_tails(files_list, day):
-    """Creates tails_set for every day. Works for every day from days_set.
-
-    Tails_set contains the tails of all files preprocessed in the
-    directory of this day. For example, if you preprocessed only the
-    files xxx.001, set will contain only one item - "001". If you
-    preprocessed all the day, the set will contain all the tails from
-    ('001', '002', '003', ..., the last one) of this day."""
-
-    global TOTAL_DICT_OF_DAYS
-    tails_set = set()
-    for file in files_list:
-        if file[:-19] == day:
-            file = tools.check_and_cut_the_tail(file)
-            tails_set.add(file[60:])
-    print("Set of tails have been created.")
-    return tails_set
-
-def set_of_days(files_list):
-    """Creates days_set which contain full pathes of all the days present
-    in .files_list. If you preprocessed one day, there will be only it."""
-
-    days_set = set()
-    for file in files_list:
-        file = tools.check_and_cut_the_tail(file)
-        file_directory = file[:-18]
-        days_set.add(file_directory)
-    print("Set of days have been created.")
-    return days_set
-
-def create_empty_dict_of_days(start_time):
-    
-    global MIN_EVENT_NUMBER
-    global MAX_EVENT_NUMBER
-    
-    dict_of_max_min = {}
-    print("Event numbers range in parallel bsms are finding out...")
-    with open('.files_list.txt', 'r') as files:
-        files_list = files.readlines()
-    days_list = sorted(list(set_of_days(files_list)))
-
-    for day in days_list:
-        tails_list = sorted(list(set_of_tails(files_list, day)))
-        for tail in tails_list:
-            dict_of_max_min[tail] = [MIN_EVENT_NUMBER, MAX_EVENT_NUMBER]
-            TOTAL_DICT_OF_DAYS[day] = dict_of_max_min
+TOTAL_DICT_OF_DAYS = dict() # TODO dict() is more clearly than the {}
 # =============================================================================
 #
 # =============================================================================
@@ -71,26 +22,29 @@ def to_process(start_time):
     process_one_file function like children in "Another Brick In The Wall".
     In addition provides all needed interface. Exactly from here
     comes the BASH outstream through all binary files cleaning."""
-
+    print("Start to_process!\n")
+    global TOTAL_DICT_OF_DAYS
     create_empty_dict_of_days(start_time)
     with open('.files_list.txt', 'r') as file_of_files:
         number_of_files_to_process = len(file_of_files.readlines())
+    # TODO лучше сформировать files_list в with выше и не открывать тот, что ниже + не files_list, а files_to_process_list
     with open(".files_list.txt", "r") as files_list:
-        print("\nStart to process...\n")
+        #print("\nStart to process...\n")
         counter = 0
         for file_to_process in files_list:
-            file_to_process = tools.check_and_cut_the_tail(file_to_process)            
-            tail = file_to_process[-3:]
+            file_to_process = tools.check_and_cut_the_tail(file_to_process)
             file_day = file_to_process[:-18]
-            
+            tail = file_to_process[-3:]
             min_number, max_number = to_process_single_file(file_to_process)
+            #print(min_number, max_number)
             if min_number != "empty" and max_number != "empty":
-                        
+                #print(min_number, TOTAL_DICT_OF_DAYS[file_day][tail][0], TOTAL_DICT_OF_DAYS[file_day][tail][1])
+                #print(type(min_number), type(TOTAL_DICT_OF_DAYS[file_day][tail][0]), type(TOTAL_DICT_OF_DAYS[file_day][tail][1]))
                 if min_number < TOTAL_DICT_OF_DAYS[file_day][tail][0]:
                     TOTAL_DICT_OF_DAYS[file_day][tail][0] = min_number
                 if max_number > TOTAL_DICT_OF_DAYS[file_day][tail][1]:
                     TOTAL_DICT_OF_DAYS[file_day][tail][1] = max_number
-            
+
             print("\nPreparing binary files:\n")
             counter += 1
             tools.syprogressbar(
@@ -99,18 +53,86 @@ def to_process(start_time):
                 u'\u24B7',
                 "preparing binary files",
                 start_time)
+            print(file_to_process)
             print("\n{} is processing now.".format(file_to_process))
-            
+
     with open(".total_dict_of_days.txt", "w+") as dict_file:
         for day, tail_list in TOTAL_DICT_OF_DAYS.items():
             dict_file.write(str(day) + "\n")
             dict_file.write(str(len(tail_list)) + "\n")
             for tail, list_of_max_min in tail_list.items():
                 dict_file.write("{}\t{}\t{}\n".format(tail, list_of_max_min[0], list_of_max_min[1]))
+    print("End to_process!\n")
 #==============================================================================
 #
 # =============================================================================
-                
+
+def create_empty_dict_of_days(start_time):
+
+    print("Start create_empty_dict_of_days...")
+    global MIN_EVENT_NUMBER
+    global MAX_EVENT_NUMBER
+    global TOTAL_DICT_OF_DAYS
+
+    #dict_of_max_min = {} ATTENTION def IT here ERROR!!!!
+    #print("Event numbers range in parallel bsms are finding out...")
+    with open('.files_list.txt', 'r') as files:
+        files_list = files.readlines() # TODO not files_list, but files_full_path_list
+    days_list = sorted(list(set_of_days(files_list)))
+
+    print('\n\n\n')
+    i=0
+    for day in days_list:
+        tails_list = sorted(list(set_of_tails(files_list, day)))
+        print("[{}] tails_list={}".format(i, tails_list))
+        j=0
+        dict_of_max_min = dict() # TODO IT should be here
+        for tail in tails_list:
+            print("[{}:{}] tail={}".format(i, j, tail))
+            dict_of_max_min[tail] = [MIN_EVENT_NUMBER, MAX_EVENT_NUMBER]
+            TOTAL_DICT_OF_DAYS[day] = dict_of_max_min
+            j += 1
+        i += 1
+    print("TOTAL_DICT_OF_DAYS=", TOTAL_DICT_OF_DAYS)
+    print('\n\n\n')
+    print("End create_empty_dict_of_days...")
+# =============================================================================
+#
+# =============================================================================
+def set_of_days(files_list):
+    """Creates days_set which contain full pathes of all the days present
+    in .files_list. If you preprocessed one day, there will be only it."""
+
+    days_set = set()
+    for file in files_list:
+        file_directory = tools.check_and_cut_the_tail(file)[:-18]
+        days_set.add(file_directory)
+    #print("Set of days have been created.")
+    #print(sorted(list(days_set))) TODO remove me!
+    return days_set
+# =============================================================================
+#
+# =============================================================================
+def set_of_tails(files_list, day):
+    """Creates tails_set for every day. Works for every day from days_set.
+
+    Tails_set contains the tails of all files preprocessed in the
+    directory of this day. For example, if you preprocessed only the
+    files xxx.001, set will contain only one item - "001". If you
+    preprocessed all the day, the set will contain all the tails from
+    ('001', '002', '003', ..., the last one) of this day."""
+
+    # global TOTAL_DICT_OF_DAYS # TODO why The PO does need It?
+    tails_set = set()
+    for file in files_list:
+        if file[:-19] == day:
+            file = tools.check_and_cut_the_tail(file)
+            tails_set.add(file[-3:]) #TODO It was changed from 60: to -3:
+    #print("Set of tails have been created.")
+    #print(sorted(list(tails_set))) #TODO remove me!
+    return tails_set
+
+
 def to_process_single_file(file_to_process):
     """Conducts one input file through all sequence of needed operations.
 
@@ -126,6 +148,7 @@ def to_process_single_file(file_to_process):
 
     The details of functions see in their own docstrings."""
 
+    print("Start to process singl file: ", file_to_process)
     with open(".mess.txt", "a") as mess_file:
         
 #        if (tools.is_exist(tools.make_PED_file_temp(file_to_process) + ".spd") or
@@ -133,6 +156,11 @@ def to_process_single_file(file_to_process):
 #                tools.is_exist(tools.make_PED_file_temp(file_to_process) + ".sig")) is False:
 #           .spd - static pedestals
         print("Static pedestals files creating...")
+        #TODO более наглядно создать стороку ped_file_temp = make_PED_file_temp(file_to_process), а затем ее передовать дальше
+        # это улучшит читаемость
+        ped_file_temp = tools.make_PED_file_temp(file_to_process)
+        # TODO запись в .mess_file.txt можно вынести в отдельную функцию и добавить ее в tools
+        # prototype: fill_mess(temp, format) с форматом по умочанию 0, для записи в него например files_list.txt
         mess_file.write("Made temporary file:  {}.spd\n".format(
                 tools.make_PED_file_temp(file_to_process)))
         print("Made temporary file:  {}.spd".format(
@@ -217,6 +245,7 @@ def to_process_single_file(file_to_process):
                 tools.make_BSM_file_temp(file_to_process)))
         make_dynamic_amplitudes(file_to_process)
 #        else: print("Dynamic amplitude file is exist.")
+    print("End to process single file: ", file_to_process)
     return min_number, max_number
 # =============================================================================
 #
@@ -238,7 +267,7 @@ def make_static_pedestals (file_to_process):
     codes_beginning_byte = 24 
     codes_ending_byte = 152 
     
-    with open(file_to_process[:-18] + "PED/" + file_to_process[-12:-4] + ".ped", "rb") as ped_fin: 
+    with open(file_to_process[:-18] + "PED/" + file_to_process[-12:-4] + ".ped", "rb") as ped_fin:
         chunk = ped_fin.read(chunk_size) 
         while chunk: 
             ped_array = list(tools.unpacked_from_bytes("<64h", chunk[codes_beginning_byte:codes_ending_byte])) 
@@ -434,7 +463,7 @@ def make_static_amplitudes(file_to_process):
 
     with open(file_to_process, "rb") as codes_fin:
         with open(tools.make_BSM_file_temp(file_to_process) + ".asp", "wb") as cleaned_file:
-
+            print("create .asp file: ", (tools.make_BSM_file_temp(file_to_process) + ".asp"))
             chunk_counter = 0
             chunk = codes_fin.read(chunk_size)
             while chunk:

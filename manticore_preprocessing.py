@@ -13,6 +13,7 @@ TOTAL_DICT_OF_DAYS_FILE = ".total_dict_of_days.txt"
 #
 # =============================================================================
 
+# TODO точно така функция есть в decoding! Разумно ее из обойх мест перенести в tools
 def set_of_days(files_list):
     """Creates days_set which contain full pathes of all the days present
     in .files_list. If you preprocessed one day, there will be only it."""
@@ -27,7 +28,7 @@ def set_of_days(files_list):
 # =============================================================================
 #
 # =============================================================================
-
+#TODO
 def set_of_tails(files_list, day):
     """Creates tails_set for every day. Works for every day from days_set.
 
@@ -50,6 +51,8 @@ def set_of_tails(files_list, day):
 
 def list_of_tail_files(day_directory, list_of_BSM, tail):
 
+    print("Start list_of_tail_files...")
+    '''
     tail_files = []
     for BSM in list_of_BSM:
         BSM_name = "{}{}/".format(
@@ -59,7 +62,15 @@ def list_of_tail_files(day_directory, list_of_BSM, tail):
             BSM_name,
             tools.TAIL_FILE_REGULAR_PATTERN + tail).split()[0]
         tail_files.append(new_tail_file)
+    print("Start list_of_tail_files...")
+    print("tail_files=", tail_files)
     return tail_files
+    '''
+    with open('.files_list.txt', 'r') as files:
+        files_list = files.readlines() # TODO not files_list, but files_full_path_list
+    days_list = sorted(list(set_of_days(files_list)))
+    return days_list
+
 # =============================================================================
 #
 # =============================================================================
@@ -321,16 +332,23 @@ def fill_the_summary_files(start_time):
     of every BSM, also the time of event in every BSM and trigger-status
     and ignore-status of every channel in every BSM."""
 
+    print("Start fill_the_summary_files...")
     dict_of_days = {}
+    i=0
     with open (TOTAL_DICT_OF_DAYS_FILE, "r") as total_dict_of_days_file:
         day = total_dict_of_days_file.readline()
         while day:
+            print("{}: day={}".format(i, day))
             day = tools.check_and_cut_the_tail(day)
-            dict_of_days[day] = {}
+            i += 1
             number_of_tails = int(total_dict_of_days_file.readline())
             for i in range (number_of_tails):
                 current_tail_record = total_dict_of_days_file.readline().split()
-                dict_of_days[day][current_tail_record[0]] = [int(current_tail_record[1]), int(current_tail_record[2])]
+                print("current_tail_record=", current_tail_record)
+                dict_of_tails_of_the_day = dict()
+                dict_of_tails_of_the_day[current_tail_record[0]] = [int(current_tail_record[1]), int(current_tail_record[2])]
+            dict_of_days[day] = dict_of_tails_of_the_day
+            print("dict_of_days = ", dict_of_days)
             day = total_dict_of_days_file.readline()
 
     print("The summary files of events are fillng by data...")
@@ -342,7 +360,7 @@ def fill_the_summary_files(start_time):
             tail_max_min_list.append(max_min_list)
         list_of_BSM = tools.directory_objects_parser(
             day_directory, tools.BSM_REGULAR_PATTERN).split()
-
+        print("list_of_BSM=", list_of_BSM)
         tails_counter = 0
         for i in range(len(list_of_tails)):
             print("The {} is analizyng...".format(list_of_tails[i]))
@@ -359,6 +377,7 @@ def fill_the_summary_files(start_time):
         print("Global .list file has been created.")
 
     print(tools.time_check(start_time))
+    print("End fill_the_summary_files...")
 # =============================================================================
 #
 # =============================================================================
