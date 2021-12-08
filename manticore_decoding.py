@@ -10,7 +10,7 @@ import time # TODO why do we need It?
 
 MAX_EVENT_NUMBER = 0
 MIN_EVENT_NUMBER = 999999999999
-TOTAL_DICT_OF_DAYS = dict() # TODO dict() is more clearly than the {}
+#TOTAL_DICT_OF_DAYS = dict() # TODO dict() is more clearly than the {}
 # =============================================================================
 #
 # =============================================================================
@@ -23,8 +23,7 @@ def to_process(start_time):
     In addition provides all needed interface. Exactly from here
     comes the BASH outstream through all binary files cleaning."""
     print("Start to_process!\n")
-    global TOTAL_DICT_OF_DAYS
-    create_empty_dict_of_days(start_time)
+    TOTAL_DICT_OF_DAYS = create_empty_dict_of_days(start_time)
     with open('.files_list.txt', 'r') as file_of_files:
         number_of_files_to_process = len(file_of_files.readlines())
     # TODO лучше сформировать files_list в with выше и не открывать тот, что ниже + не files_list, а files_to_process_list
@@ -53,8 +52,7 @@ def to_process(start_time):
                 u'\u24B7',
                 "preparing binary files",
                 start_time)
-            print(file_to_process)
-            print("\n{} is processing now.".format(file_to_process))
+            #print("\n{} is processing now.".format(file_to_process)) TODO remove me!
 
     with open(".total_dict_of_days.txt", "w+") as dict_file:
         for day, tail_list in TOTAL_DICT_OF_DAYS.items():
@@ -72,7 +70,7 @@ def create_empty_dict_of_days(start_time):
     print("Start create_empty_dict_of_days...")
     global MIN_EVENT_NUMBER
     global MAX_EVENT_NUMBER
-    global TOTAL_DICT_OF_DAYS
+    TOTAL_DICT_OF_DAYS = dict()
 
     #dict_of_max_min = {} ATTENTION def IT here ERROR!!!!
     #print("Event numbers range in parallel bsms are finding out...")
@@ -96,6 +94,7 @@ def create_empty_dict_of_days(start_time):
     print("TOTAL_DICT_OF_DAYS=", TOTAL_DICT_OF_DAYS)
     print('\n\n\n')
     print("End create_empty_dict_of_days...")
+    return TOTAL_DICT_OF_DAYS
 # =============================================================================
 #
 # =============================================================================
@@ -105,7 +104,7 @@ def set_of_days(files_list):
 
     days_set = set()
     for file in files_list:
-        file_directory = tools.check_and_cut_the_tail(file)[:-18]
+        file_directory = tools.check_and_cut_the_tail(file)[:-18] # TODO It was changed!
         days_set.add(file_directory)
     #print("Set of days have been created.")
     #print(sorted(list(days_set))) TODO remove me!

@@ -67,7 +67,6 @@ def is_preprocessing_needed(set_1, start_time):
             It's in the script directory under the name",
             ".files_list.txt"))
         print(time_check(start_time))
-        system_exit()
     elif set_1 == "3":
         print("The list of temporary files are compiling...")
         with open(SCRIPT_DIRECTORY + "/.files_list.txt", "r") as files_list:
@@ -160,7 +159,7 @@ def make_BSM_file_temp(input_string):
     with the data. Returns the same string with the dot
     between the file directory and its name."""
 
-    return input_string[:-12] + input_string[-12:] # TODO why the . is needed here?
+    return input_string[:-12] + "." + input_string[-12:]
 # =============================================================================
 #
 # =============================================================================
@@ -172,7 +171,7 @@ def make_PED_file_temp(input_string):
     with the pedestals. Returns the same string with the
     dot between the file directory and its name."""
 
-    return input_string[:-18] + "PED/" + input_string[-12:-4]
+    return input_string[:-18] + "PED/." + input_string[-12:-4]
 # =============================================================================
 #
 # =============================================================================
@@ -216,7 +215,7 @@ def directory_objects_parser(directory, object_pattern):
 
     Takes the absolute path of the directory and regular
     expression (in string, not re.compiled!) of the
-    object. Finally returns the sting with relative names
+    object. Finally returns the string with relative names
     of this objects separated by spaces in this string"""
 
     object_pattern = re.compile(object_pattern)

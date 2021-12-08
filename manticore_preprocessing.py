@@ -6,13 +6,80 @@ Created on Mon Apr 20 23:45:35 2020
 @author: yaroslav
 """
 import manticore_tools as tools
+from manticore_tools import system_exit as system_exit # Предлагаю делать так только с очевидними функциями
+import os
 
 EVENT_FILTER = 0
 TOTAL_DICT_OF_DAYS_FILE = ".total_dict_of_days.txt"
 # =============================================================================
 #
 # =============================================================================
+#TODO It should be at the top i.e. here
+def fill_the_summary_files(start_time):
+    """Fill the final summary files with events named (tail).sum.
 
+    Here each existed tail.sum file is being filled by cleaned amplitudes.
+    For each file function runs through all (22) repacking and cleaned data
+    files with this tail in this day directory. For each data file function
+    one by one reads numbers of events. Each block of data function puts to
+    the correspondent place in (tail).sum file. This place is the N_1-th string
+    in N_2-th blank, where N_1 - BSM number, N_2 - event number. So, this
+    string in the tail.sum file will contain exatly amplitudes of THIS BSM in
+    THIS event.
+    Finally each tail.sum file contains full information about every event
+    from two minutes that corresponds to this tail: number, and amplitudes
+    of every BSM, also the time of event in every BSM and trigger-status
+    and ignore-status of every channel in every BSM."""
+
+    print("Start fill_the_summary_files...")
+    dict_of_days = {}
+    with open (TOTAL_DICT_OF_DAYS_FILE, "r") as total_dict_of_days_file:
+        day = total_dict_of_days_file.readline()
+        while day:
+            day = tools.check_and_cut_the_tail(day)
+            number_of_tails = int(total_dict_of_days_file.readline())
+            for i in range (number_of_tails):
+                current_tail_record = total_dict_of_days_file.readline().split()
+                dict_of_tails_of_the_day = dict()
+                dict_of_tails_of_the_day[current_tail_record[0]] = [int(current_tail_record[1]), int(current_tail_record[2])]
+            dict_of_days[day] = dict_of_tails_of_the_day
+            day = total_dict_of_days_file.readline()
+
+    print("The summary files of events are fillng by data...")
+    list_of_tails = []
+    i=0
+    for day_directory, tail_dict in dict_of_days.items():
+        tail_max_min_list = []
+        j=0
+        for tail, max_min_list in tail_dict.items():
+            list_of_tails.append(tail)
+            tail_max_min_list.append(max_min_list) # TODO more correct tail_min_max_list
+        print("{}:{} list_of_tails={}".format(i, j, list_of_tails))
+        print("{}:{} tail_max_min_list={}".format(i, j, tail_max_min_list))
+        list_of_BSM = tools.directory_objects_parser(
+            day_directory, tools.BSM_REGULAR_PATTERN).split()
+        print("list_of_BSM=", list_of_BSM)
+        tails_counter = 0
+        j += 1
+        for i in range(len(list_of_tails)):
+            print("The {} is analizyng...".format(list_of_tails[i]))
+            tails_counter += 1
+            create_summary_file_for_tail(list_of_tails[i], tail_max_min_list[i], start_time,
+                                         list_of_BSM, day_directory,
+                                         tails_counter, list_of_tails)
+        print("The summary files for  {}  have been created".format(day_directory))
+        print(tools.time_check(start_time))
+
+        print("Merging .list files into one...")
+        merge_list_files(day_directory)
+        print("Global .list file has been created.")
+    i += 1
+
+    print(tools.time_check(start_time))
+    print("End fill_the_summary_files...")
+# =============================================================================
+#
+# =============================================================================
 # TODO точно така функция есть в decoding! Разумно ее из обойх мест перенести в tools
 def set_of_days(files_list):
     """Creates days_set which contain full pathes of all the days present
@@ -52,7 +119,6 @@ def set_of_tails(files_list, day):
 def list_of_tail_files(day_directory, list_of_BSM, tail):
 
     print("Start list_of_tail_files...")
-    '''
     tail_files = []
     for BSM in list_of_BSM:
         BSM_name = "{}{}/".format(
@@ -62,14 +128,8 @@ def list_of_tail_files(day_directory, list_of_BSM, tail):
             BSM_name,
             tools.TAIL_FILE_REGULAR_PATTERN + tail).split()[0]
         tail_files.append(new_tail_file)
-    print("Start list_of_tail_files...")
-    print("tail_files=", tail_files)
+    print("End list_of_tail_files...")
     return tail_files
-    '''
-    with open('.files_list.txt', 'r') as files:
-        files_list = files.readlines() # TODO not files_list, but files_full_path_list
-    days_list = sorted(list(set_of_days(files_list)))
-    return days_list
 
 # =============================================================================
 #
@@ -128,8 +188,10 @@ def print_statistics_for_matrix_of_events(matrix_of_events, stat_file):
 #
 # =============================================================================
 
+# TODO по моему плохо передовать tail функции только для progress bar
 def fill_the_matrix_of_events(matrix_of_events, tail_files, tail, tail_max_min_list, start_time, clean_status = 0):
 
+    print("\n\n\nStart fill_the_matrix_of_events...")
     chunk_size = 282
     tail_files_counter = 0
     for tail_file in tail_files:
@@ -147,96 +209,107 @@ def fill_the_matrix_of_events(matrix_of_events, tail_files, tail, tail_max_min_l
             tail_file = tools.make_BSM_file_temp(tail_file) + '.adp'
             chunk_size = 282
 #        try:
-        with open(tail_file, 'rb') as tail_file:
-            chunk = tail_file.read(chunk_size)
-            chunk_counter = 0
-            while chunk:
+        if os.path.isfile(tail_file):
+            with open(tail_file, 'rb') as tail_file:
+                chunk = tail_file.read(chunk_size)
+                chunk_counter = 0
+                while chunk:
 #                    try:
-                head_array = tools.unpacked_from_bytes('hhii', chunk[:12])
-                num_event = head_array[2]
-                maroc_number = tools.unpacked_from_bytes('h', chunk[20:22])[0]
-                time_array = tools.unpacked_from_bytes('hhhh', chunk[12:20])
-                ns = (time_array[0] & 0x7f)*10
-                mks = (time_array[0] & 0xff80) >> 7
-                mks |= (time_array[1] & 1) << 9
-                mls = (time_array[1] & 0x7fe) >> 11
-                s = (time_array[1] & 0xf800) >> 11
-                s |= (time_array[2] & 1) << 5
-                m = (time_array[2] & 0x7e) >> 1
-                h = (time_array[2] & 0xf80) >> 7
-                time_string = "{}:{}:{}.{}.{}.{}".format(h, m, s, mls, mks, ns)
+                    head_array = tools.unpacked_from_bytes('hhii', chunk[:12])
+                    num_event = head_array[2]
+                    maroc_number = tools.unpacked_from_bytes('h', chunk[20:22])[0]
+                    time_array = tools.unpacked_from_bytes('hhhh', chunk[12:20])
+                    ns = (time_array[0] & 0x7f)*10
+                    mks = (time_array[0] & 0xff80) >> 7
+                    mks |= (time_array[1] & 1) << 9
+                    mls = (time_array[1] & 0x7fe) >> 11
+                    s = (time_array[1] & 0xf800) >> 11
+                    s |= (time_array[2] & 1) << 5
+                    m = (time_array[2] & 0x7e) >> 1
+                    h = (time_array[2] & 0xf80) >> 7
+                    time_string = "{}:{}:{}.{}.{}.{}".format(h, m, s, mls, mks, ns)
                         
-                if clean_status == 0:                        
-                    result_array = tools.unpacked_from_bytes('fB'*32, chunk[24:-4])
-                elif clean_status in (1, 2):
-                    result_array = tools.unpacked_from_bytes('fBB'*32, chunk[24:-4])
+                    if clean_status == 0:
+                        result_array = tools.unpacked_from_bytes('fB'*32, chunk[24:-4])
+                    elif clean_status in (1, 2):
+                        result_array = tools.unpacked_from_bytes('fBB'*32, chunk[24:-4])
                             
-                result_string_ampls = '\t'.join([str(x) for x in result_array])
-                matrix_of_events[num_event - tail_max_min_list[0]][maroc_number] =\
-                    "{}\t{}\t{}".format(
-                            maroc_number,
-                            time_string,
-                            result_string_ampls)
+                    result_string_ampls = '\t'.join([str(x) for x in result_array])
+                    matrix_of_events[num_event - tail_max_min_list[0]][maroc_number] =\
+                        "{}\t{}\t{}".format(
+                                maroc_number,
+                                time_string,
+                                result_string_ampls)
                                     
 #                    except Exception:
 #                        print("{} Chunk number {} in file {} is seems to be corrupted!".format(
 #                            "AMPLITUDE FILE CHUNK RECORDING ERROR!",
 #                            chunk_counter,
 #                            tail_file))
-                chunk_counter += 1
-                chunk = tail_file.read(chunk_size)
+                    chunk_counter += 1
+                    chunk = tail_file.read(chunk_size)
 
-            tail_files_counter += 1
-            tools.syprogressbar(
-                tail_files_counter,
-                len(tail_files),
-                u'\u24BB',
-                "tail files {} amplitudes collecting".format(tail),
-                start_time)
+                tail_files_counter += 1
+                tools.syprogressbar(
+                    tail_files_counter,
+                    len(tail_files),
+                    u'\u24BB',
+                    "tail files {} amplitudes collecting".format(tail),
+                    start_time)
 #        except Exception:
 #            print("{} File {} is seems to be not existed!".format(
 #                    "AMPLITUDE FILE EXISTING ERROR!",
 #                    tail_file))
+    print("\n\nEnd fill_the_matrix_of_events...")
     return matrix_of_events
 # =============================================================================
 #
 # =============================================================================
-
+# TODO ATTENTION this function does not work correctly for one/two file
 def create_summary_file_for_tail(tail, tail_max_min_list, start_time,
                                  list_of_BSM, day_directory,
                                  tails_counter, list_of_tails):
-    
+    print("\n\n\nStart create_summary_file_for_tail...")
     min_event_number_in_tail = tail_max_min_list[0]
     max_event_number_in_tail = tail_max_min_list[1]
 
-    print("\nEmpty matrix of clean events are creating...")
+    #TODO the better is def nevnents  = max_event_number_in_tail - min_event_number_in_tail + 1 and put It by the next steps
+    #print("\nEmpty matrix of clean events are creating...") # TODO It makes output is overloaded
     matrix_of_events_clean = [['']*22 for i in range(max_event_number_in_tail - min_event_number_in_tail + 1)]
     print("\nEmpty matrix of events has been created...")
 
     print("\nFiles list for tail  {}  from  {}  are creating...".format(tail, day_directory))
     tail_files = list_of_tail_files(day_directory, list_of_BSM, tail)
+    print("tail_files=", tail_files)
     
-
-
-    print("\nEmpty matrix of events with static pedestals cleaning are creating...")
+    #print("\nEmpty matrix of events with static pedestals cleaning are creating...") # TODO It makes output is overloaded
     matrix_of_events_static = [['']*22 for i in range(max_event_number_in_tail - min_event_number_in_tail + 1)]
-    print("\nEmpty matrix of events has been created...")
+    print("\nEmpty matrix of events with static pedestals cleaning has been created...")
 
+    '''
+    TODO why do we need It????
     print("\nFiles list for tail  {}  from  {}  are creating...".format(tail, day_directory))
-    tail_files = list_of_tail_files(day_directory, list_of_BSM, tail)
-    
+    tail_files = list_of_tail_files(day_directory, list_of_BSM, tail) # TODO why we need It????
+    '''
 
-
-    print("\nEmpty matrix of events with dynamic pedestals cleaning are creating...")
+    #print("\nEmpty matrix of events with dynamic pedestals cleaning are creating...") # TODO It makes output is overloaded
     matrix_of_events_dynamic = [['']*22 for i in range(max_event_number_in_tail - min_event_number_in_tail + 1)]
-    print("\nEmpty matrix of events has been created...")
-        
+    print("\nEmpty matrix of events with dynamic pedestals cleaning has been created...")
+
+    '''
+    TODO why do we need It????
     print("\nFiles list for tail  {}  from  {}  are creating...".format(tail, day_directory))
     tail_files = list_of_tail_files(day_directory, list_of_BSM, tail)
+    '''
 
-
-
-    print("Event matrix with static pedestals cleaning for tail  {}  from  {}  are creating...".format(tail, day_directory))
+    #TODO ATTENTION REMOVE ME! tail_files below
+    '''
+    path_1 = "/home/satyshev/Data/DATA_IACT/2017-18/oct17/271017/BSM01/"
+    path_2 = "/home/satyshev/Data/DATA_IACT/2017-18/oct17/281017/BSM03/"
+    tail_files = [path_1+'27107001.001', path_2+"28107003.006", path_2 + "28107003.007" ]
+    print("new_tail_files=", tail_files)
+    '''
+    print("Event matrix with static pedestals cleaning for tail  {}  from  {}  are creating...".format(tail, day_directory)) #TODO are filing
     matrix_of_events_static = fill_the_matrix_of_events(matrix_of_events_static, tail_files, tail, tail_max_min_list, start_time, 1)
     
     print("Event matrix with dynamic pedestals cleaning for tail  {}  from  {}  are creating...".format(tail, day_directory))
@@ -312,75 +385,11 @@ def create_summary_file_for_tail(tail, tail_max_min_list, start_time,
     print_statistics_for_matrix_of_events(matrix_of_events_dynamic, stat_file_dynamic)
     print("Statistics for clean amplitudes for tail {} from {} are calculating...".format(tail, day_directory))
     print_statistics_for_matrix_of_events(matrix_of_events_clean, stat_file_clean)
+    print("\n\n\nEnd create_summary_file_for_tail...")
 # =============================================================================
 #
 # =============================================================================
 
-def fill_the_summary_files(start_time):   
-    """Fill the final summary files with events named (tail).sum.
-
-    Here each existed tail.sum file is being filled by cleaned amplitudes.
-    For each file function runs through all (22) repacking and cleaned data
-    files with this tail in this day directory. For each data file function
-    one by one reads numbers of events. Each block of data function puts to
-    the correspondent place in (tail).sum file. This place is the N_1-th string
-    in N_2-th blank, where N_1 - BSM number, N_2 - event number. So, this
-    string in the tail.sum file will contain exatly amplitudes of THIS BSM in
-    THIS event.
-    Finally each tail.sum file contains full information about every event
-    from two minutes that corresponds to this tail: number, and amplitudes
-    of every BSM, also the time of event in every BSM and trigger-status
-    and ignore-status of every channel in every BSM."""
-
-    print("Start fill_the_summary_files...")
-    dict_of_days = {}
-    i=0
-    with open (TOTAL_DICT_OF_DAYS_FILE, "r") as total_dict_of_days_file:
-        day = total_dict_of_days_file.readline()
-        while day:
-            print("{}: day={}".format(i, day))
-            day = tools.check_and_cut_the_tail(day)
-            i += 1
-            number_of_tails = int(total_dict_of_days_file.readline())
-            for i in range (number_of_tails):
-                current_tail_record = total_dict_of_days_file.readline().split()
-                print("current_tail_record=", current_tail_record)
-                dict_of_tails_of_the_day = dict()
-                dict_of_tails_of_the_day[current_tail_record[0]] = [int(current_tail_record[1]), int(current_tail_record[2])]
-            dict_of_days[day] = dict_of_tails_of_the_day
-            print("dict_of_days = ", dict_of_days)
-            day = total_dict_of_days_file.readline()
-
-    print("The summary files of events are fillng by data...")
-    list_of_tails = []
-    for day_directory, tail_dict in dict_of_days.items():
-        tail_max_min_list = []
-        for tail, max_min_list in tail_dict.items():
-            list_of_tails.append(tail)
-            tail_max_min_list.append(max_min_list)
-        list_of_BSM = tools.directory_objects_parser(
-            day_directory, tools.BSM_REGULAR_PATTERN).split()
-        print("list_of_BSM=", list_of_BSM)
-        tails_counter = 0
-        for i in range(len(list_of_tails)):
-            print("The {} is analizyng...".format(list_of_tails[i]))
-            tails_counter += 1
-            create_summary_file_for_tail(list_of_tails[i], tail_max_min_list[i], start_time,
-                                         list_of_BSM, day_directory,
-                                         tails_counter, list_of_tails)
-        print("The summary files for  {}  have been created".format(day_directory))
-        print(tools.time_check(start_time))
-
-
-        print("Merging .list files into one...")
-        merge_list_files(day_directory)
-        print("Global .list file has been created.")
-
-    print(tools.time_check(start_time))
-    print("End fill_the_summary_files...")
-# =============================================================================
-#
-# =============================================================================
 
 def merge_list_files(day_directory):
     list_files = tools.directory_objects_parser(day_directory, tools.LIST_FILE_PATTERN).split()

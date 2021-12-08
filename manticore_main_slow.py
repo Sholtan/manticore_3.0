@@ -38,9 +38,9 @@ if SET_0 == '1':
     manticore_tools.mess_destroyer(START_TIME)
 
 manticore_parser.parser(SET_3, START_TIME) # forms files_list.txt
-manticore_tools.is_preprocessing_needed(SET_1, START_TIME) # desides what programm does by the next step. It depends on the SET_1
+manticore_tools.is_preprocessing_needed(SET_1, START_TIME) # decides what programm does by the next step. It depends on the SET_1
 manticore_decoding.to_process(START_TIME) # processes files from the files_list.txt
-manticore_tools.system_exit()
+#manticore_tools.system_exit()
 manticore_preprocessing.fill_the_summary_files(START_TIME)
 
 if SET_2 != '1':
