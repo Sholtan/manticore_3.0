@@ -21,16 +21,17 @@ def convert_to_msu(file_path=''):
             else:
                 events_dict[ev_id].append(split_line)
 
-    print(' Converting the file ', file_path, '...')
-    with open(file_path+'.m', 'w') as out_file:
+    print(' Converting and writing to the file ', file_path, '...')
+    with open(file_path+'.msu', 'w') as out_file:
         for ev_id, clrs_list in events_dict.items():
             clrs_num = len(events_dict[ev_id])
-            out_file.write(' {}'.format(clrs_num))
+            out_file.write('{}{}\n'.format(' '*(3-len(str(clrs_num))),clrs_num))
             for clr in clrs_list:
                 clr_id = clr[0]
                 clr_time = clr[1]
                 clr_amps = clr[2:]
-                out_file.write(" {}          {}   {}".format(int(clr_id)+1, ev_id, clr_time))
+                out_file.write("{}{}{}{}   {}\n".format(' '*(2-len(clr_id)), \
+                                int(clr_id)+1, ' '*(11-len(ev_id)), ev_id, clr_time))
                 counter = 0
                 out_file.write('   ')
                 for i in range(0, len(clr_amps), 2):
