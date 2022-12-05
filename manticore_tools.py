@@ -25,29 +25,56 @@ BSM_REGULAR_PATTERN = r"BSM\d{2}$"
 DAY_REGULAR_PATTERN = r"^\d{6}\.?\d{0,3}$"
 TAIL_FILE_REGULAR_PATTERN = r"\d{8}\."
 LIST_FILE_PATTERN = r'\d{3}_.*\.list$'
+
+#
+# =============================================================================
+
+def what_time_is_now():
+    """Returns current time in seconds from the epoch beginning."""
+
+    return time.time()
 # =============================================================================
 #
 # =============================================================================
 
-def syprogressbar(current_step, all_steps, symbol, operation, start_time):
-    """Progressbar to show status of any operation and time from the start.
+def time_check(start_time):
+    """Returns the time from the start of some operation.
 
-    Takes current step and number of all steps.
-    Also takes symbol for progressbar and name
-    of the operation. Work inside the cycles and
-    requires the counter of its steps"""
-    print("{} {}{} {}{}".format(
-        "Progress of",
-        operation,
-        ":",
-        int(current_step/all_steps*100),
-        "%"))
-    print("{}{}{}{}".format(
-        "[",
-        int(current_step/all_steps*100)*symbol,
-        int((all_steps-current_step)/all_steps*100)*"_",
-        "]"))
-    print(time_check(start_time))
+    Takes start time point in seconds from the epoch
+    beginning, calculates the difference between it and
+    the current moment and returns it in hh:mm:ss format."""
+
+    current_time = time.time() - start_time
+    return "\nTime from the start:\n{} h {:2} m {:2} s\n".format(
+        int(current_time//60//60),
+        int(current_time//60%60),
+        int(current_time%60))
+# =============================================================================
+#
+# =============================================================================
+
+def read_input_card():
+    """Reads input card and returns the whole pull of the user input sets.
+
+    This sets contain work modes and the string with objects to process
+    (files, lone BSMs, days etc.). Returns all of them outside to the
+    manticore_main module."""
+
+    with open("input_card.conf", "r") as input_card:
+        ans_list = []
+        for line in input_card.readlines():
+            if line[0] != '#':
+                ans_list.append(line[:-1]) # TODO line[:-1] от начала до последнего, почему не просто line
+    print("Input card have been read.")
+    return [ans for ans in ans_list]
+# =============================================================================
+#
+# =============================================================================
+
+def system_exit():
+    """Simple system exit"""
+
+    sys.exit()
 # =============================================================================
 #
 # =============================================================================
@@ -67,6 +94,7 @@ def is_preprocessing_needed(set_1, start_time):
             It's in the script directory under the name",
             ".files_list.txt"))
         print(time_check(start_time))
+        system_exit()
     elif set_1 == "3":
         print("The list of temporary files are compiling...")
         with open(SCRIPT_DIRECTORY + "/.files_list.txt", "r") as files_list:
@@ -98,6 +126,29 @@ def is_preprocessing_needed(set_1, start_time):
             "It's in the script directory under the name .mess.txt"))
         print(time_check(start_time))
         system_exit()
+# =============================================================================
+#
+# =============================================================================
+
+def syprogressbar(current_step, all_steps, symbol, operation, start_time):
+    """Progressbar to show status of any operation and time from the start.
+
+    Takes current step and number of all steps.
+    Also takes symbol for progressbar and name
+    of the operation. Work inside the cycles and
+    requires the counter of its steps"""
+    print("{} {}{} {}{}".format(
+        "Progress of",
+        operation,
+        ":",
+        int(current_step/all_steps*100),
+        "%"))
+    print("{}{}{}{}".format(
+        "[",
+        int(current_step/all_steps*100)*symbol,
+        int((all_steps-current_step)/all_steps*100)*"_",
+        "]"))
+    print(time_check(start_time))
 # =============================================================================
 #
 # =============================================================================
@@ -176,40 +227,6 @@ def make_PED_file_temp(input_string):
 #
 # =============================================================================
 
-def time_check(start_time):
-    """Returns the time from the start of some operation.
-
-    Takes start time point in seconds from the epoch
-    beginning, calculates the difference between it and
-    the current moment and returns it in hh:mm:ss format."""
-
-    current_time = time.time() - start_time
-    return "\nTime from the start:\n{} h {:2} m {:2} s\n".format(
-        int(current_time//60//60),
-        int(current_time//60%60),
-        int(current_time%60))
-# =============================================================================
-#
-# =============================================================================
-
-def read_input_card():
-    """Reads input card and returns the whole pull of the user input sets.
-
-    This sets contain work modes and the string with objects to process
-    (files, lone BSMs, days etc.). Returns all of them outside to the
-    manticore_main module."""
-
-    with open("input_card.conf", "r") as input_card:
-        ans_list = []
-        for line in input_card.readlines():
-            if line[0] != '#':
-                ans_list.append(line[:-1])
-    print("Input card have been read.")
-    return [ans for ans in ans_list]
-# =============================================================================
-#
-# =============================================================================
-
 def directory_objects_parser(directory, object_pattern):
     """Parses the objects through the given directory.
 
@@ -230,15 +247,7 @@ def directory_objects_parser(directory, object_pattern):
 #
 # =============================================================================
 
-def what_time_is_now():
-    """Returns current time in seconds from the epoch beginning."""
-
-    return time.time()
-# =============================================================================
-#
-# =============================================================================
-
-# TODO not check_and_cut_the_tail, but line_break_char_cutter
+# TODO not check_and_cut_the_tail, but EOL_cutter()
 def check_and_cut_the_tail(line):
     """Cuts the '\n' symbols from the tail of the string.
 
@@ -299,14 +308,6 @@ def unpacked_from_bytes(rule, bytes_chunk):
     (each - 1 byte). So your input bytes chunk HAVE TO BE 100 bytes length"""
 
     return struct.unpack(rule, bytes_chunk)
-# =============================================================================
-#
-# =============================================================================
-
-def system_exit():
-    """Simple system exit"""
-
-    sys.exit()
 # =============================================================================
 #
 # =============================================================================

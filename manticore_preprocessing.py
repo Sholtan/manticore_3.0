@@ -222,7 +222,7 @@ def fill_the_matrix_of_events(matrix_of_events, tail_files, tail, tail_max_min_l
                     ns = (time_array[0] & 0x7f)*10
                     mks = (time_array[0] & 0xff80) >> 7
                     mks |= (time_array[1] & 1) << 9
-                    mls = (time_array[1] & 0x7fe) >> 11
+                    mls = (time_array[1] & 0x7fe) >> 1
                     s = (time_array[1] & 0xf800) >> 11
                     s |= (time_array[2] & 1) << 5
                     m = (time_array[2] & 0x7e) >> 1

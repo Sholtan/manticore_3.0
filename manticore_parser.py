@@ -39,14 +39,14 @@ def parser(string_with_objects_to_process, start_time):
     if all_data:
         parse_all_data()
     else :
+        for day in list_of_days:
+            parse_one_day(day)
         for bsm in list_of_bsm:
             parse_one_BSM(bsm)
         for file in list_of_files:
             parse_one_file(file)
         for tail in list_of_tails:
             parse_one_tail(tail)
-        for day in list_of_days:
-            parse_one_day(day)
 
     print("{} {}".format(
         "The list of files to process was made.",
@@ -84,6 +84,32 @@ def parse_all_data():
                         BSM_abs_path,
                         file_relative_path))
     print("End parse all data!")
+# =============================================================================
+#
+# =============================================================================
+
+def parse_one_day(day_relative_path):
+
+    print("Start parse one day: " + day_relative_path)
+    with open(".files_list.txt", "a") as files_list:
+        day_abs_path = "{}{}/".format(
+            tools.data_dir(),
+            day_relative_path)
+        list_of_BSM = tools.directory_objects_parser(
+            day_abs_path,
+            tools.BSM_REGULAR_PATTERN).split()
+        for BSM_relative_path in list_of_BSM:
+            BSM_abs_path = "{}{}/".format(
+                day_abs_path,
+                BSM_relative_path)
+            list_of_files = tools.directory_objects_parser(
+                BSM_abs_path,
+                tools.RAW_FILE_REGULAR_PATTERN).split()
+            for file_relative_path in list_of_files:
+                files_list.write("{}{}\n".format(
+                    BSM_abs_path,
+                    file_relative_path))
+    print("End parse one day: " + day_relative_path)
 # =============================================================================
 #
 # =============================================================================
@@ -147,32 +173,6 @@ def parse_one_tail(tail_relative_path):
                         BSM_abs_path,
                         file_relative_path))
     print("End parse one tail: " + tail_relative_path)
-# =============================================================================
-#
-# =============================================================================
-
-def parse_one_day(day_relative_path):
-
-    print("Start parse one day: " + day_relative_path)
-    with open(".files_list.txt", "a") as files_list:
-        day_abs_path = "{}{}/".format(
-            tools.data_dir(),
-            day_relative_path)
-        list_of_BSM = tools.directory_objects_parser(
-            day_abs_path,
-            tools.BSM_REGULAR_PATTERN).split()
-        for BSM_relative_path in list_of_BSM:
-            BSM_abs_path = "{}{}/".format(
-                day_abs_path,
-                BSM_relative_path)
-            list_of_files = tools.directory_objects_parser(
-                BSM_abs_path,
-                tools.RAW_FILE_REGULAR_PATTERN).split()
-            for file_relative_path in list_of_files:
-                files_list.write("{}{}\n".format(
-                    BSM_abs_path,
-                    file_relative_path))
-    print("End parse one day: " + day_relative_path)
 # =============================================================================
 #
 # =============================================================================
