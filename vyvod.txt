@@ -1,0 +1,62 @@
+_______________________________________manticore 3.0 SLOW mode_______________________________________
+
+
+Input card have been read.
+Preprocess of deleting old temporary files...
+Mess destroying...
+/home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.spd	does not exist or was recorded with the mistake. Delete it manually!
+/home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.ssg	does not exist or was recorded with the mistake. Delete it manually!
+/home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.sig	does not exist or was recorded with the mistake. Delete it manually!
+/home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.001.asp	does not exist or was recorded with the mistake. Delete it manually!
+
+Time from the start:
+0 h  0 m  0 s
+
+The list of files to process are compiling...
+The list of files to process was made. It's in the script directory under the name  .files_list.txt
+Parsing finished.
+
+Time from the start:
+0 h  0 m  0 s
+
+Start to_process!
+
+Start create_empty_dict_of_days...
+Set of days have been created.
+
+
+
+
+Set of tails have been created.
+[0] tails_list=['017/BSM01/28107001.004', '017/BSM02/28107002.004', '017/BSM03/28107003.004', '017/BSM04/28107004.004', '017/BSM05/28107005.004', '017/BSM06/28107006.004', '017/BSM07/28107007.004', '017/BSM08/28107008.004', '017/BSM09/28107009.004', '017/BSM10/28107010.004', '017/BSM11/28107011.004', '017/BSM12/28107012.004', '017/BSM13/28107013.004', '017/BSM14/28107014.004', '017/BSM15/28107015.004', '017/BSM16/28107016.004', '017/BSM17/28107017.004', '017/BSM18/28107018.004', '017/BSM19/28107019.004', '017/BSM20/28107020.004', '017/BSM21/28107021.004', '017/BSM22/28107022.004']
+
+
+
+
+End create_empty_dict_of_days...
+Static pedestals files creating...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.spd
+Calculating static pedestals sigmas...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.ssg
+Compiling file with channels to be ignored...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/PED/.28107001.sig
+Dynamic pedestals files creating...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.dpd
+Calculating dynamic pedestals sigmas...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.dsg
+Compiling file with channels to be ignored...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.dig
+Creating of the header...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.hdr
+The raw amplitudes file creating...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.amp
+The static amplitudes file creating...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.asp
+The raw amplitudes file creating...
+Made temporary file:  /home/yeldos/citadel/manticore/manticore_3.0/manticore_data/281017/BSM01/.28107001.004.adp
+Traceback (most recent call last):
+  File "/home/yeldos/citadel/manticore/manticore_3.0/manticore_main_slow.py", line 42, in <module>
+    manticore_decoding.to_process_1(START_TIME)
+  File "/home/yeldos/citadel/manticore/manticore_3.0/manticore_decoding.py", line 136, in to_process_1
+    if min_number < TOTAL_DICT_OF_DAYS[file_day][tail][0]:
+KeyError: '004'

@@ -22,6 +22,7 @@ print("{0}manticore 3.0 SLOW mode{0}\n\n".format("_"*39))
 START_TIME = manticore_tools.what_time_is_now()
 
 SET_0, SET_1, SET_2, SET_3 = manticore_tools.read_input_card()
+
 if SET_0 not in ('', '1'):
     print("ERROR: SET_0 IS WRONG!")
     manticore_tools.system_exit()
@@ -36,9 +37,9 @@ if SET_0 == '1':
     print("Preprocess of deleting old temporary files...")
     manticore_tools.mess_destroyer(START_TIME)
 
-manticore_parser.parser(SET_3, START_TIME) # forms files_list.txt
-manticore_tools.is_preprocessing_needed(SET_1, START_TIME) # decides what the programm does by the next step. It depends on the SET_1
-manticore_decoding.to_process(START_TIME) # processes files from the files_list.txt
+manticore_parser.parser(SET_3, START_TIME)
+manticore_tools.is_preprocessing_needed(SET_1, START_TIME)
+manticore_decoding.to_process_1(START_TIME)
 manticore_preprocessing.fill_the_summary_files(START_TIME)
 
 if SET_2 != '1':
