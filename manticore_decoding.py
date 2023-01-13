@@ -125,9 +125,9 @@ def to_process_1(start_time):
         #print("\nStart to process...\n")
         counter = 0
         for file_to_process in files_list:
-            file_to_process = tools.check_and_cut_the_tail(file_to_process)
-            file_day = file_to_process[:-18]
-            tail = file_to_process[-3:]
+            file_to_process = tools.check_and_cut_the_tail(file_to_process)  # Cuts the '\n' symbols from the tail of the string.
+            file_day = file_to_process[:-18]  # really bad way to get the day
+            tail = file_to_process[-3:] # also bad 
             min_number, max_number = to_process_single_file(file_to_process)
 #            print(min_number, max_number)
             if min_number != "empty" and max_number != "empty":
@@ -337,9 +337,9 @@ def make_static_pedestals (file_to_process):
     with open(file_to_process[:-18] + "PED/" + file_to_process[-12:-4] + ".ped", "rb") as ped_fin: 
         chunk = ped_fin.read(chunk_size) 
         while chunk: 
-            ped_array = list(tools.unpacked_from_bytes("<64h", chunk[codes_beginning_byte:codes_ending_byte])) 
+            ped_array = list(tools.unpacked_from_bytes("<64h", chunk[codes_beginning_byte:codes_ending_byte])) # PED file have negative numbers, what does that mean???
             for i in range(number_of_codes): 
-                ped_array[i] /= 4 
+                ped_array[i] /= 4  
             PED.append(ped_array) 
             for i in range(number_of_codes): 
                 PED_av[i] += ped_array[i] 
@@ -390,7 +390,7 @@ def make_dynamic_pedestals(file_to_process):
     codes_ending_byte = 152 
 
     with open(file_to_process, "rb") as codes_fin:
-        chunk = codes_fin.read(chunk_size) # have read first 156 bytes, how 156 bytes transforms to 64 int-s?
+        chunk = codes_fin.read(chunk_size) # have read first 156 bytes
         while chunk: 
             codes_array = list(tools.unpacked_from_bytes("<64h", chunk[codes_beginning_byte:codes_ending_byte])) # makes a list of int from chunk, list size = 64
             for i in range(0, len(codes_array), 2): # i runs 0 2 4 ... 62
