@@ -473,12 +473,12 @@ def make_clean_amplitudes_and_headers_1 (file_to_process):
                     codes_array = tools.unpacked_from_bytes(
                         '<64h', chunk[codes_beginning_byte:codes_ending_byte])
                     for i in range(0, len(clean_amplitudes), 2):
-                        if codes_array[i] <= 3000:
-                            clean_amplitudes[i] = codes_array[i]/4
-                            clean_amplitudes[i+1] = 0
-                        else:
-                            clean_amplitudes[i] = codes_array[i + 1]/4
-                            clean_amplitudes[i+1] = 1
+                        if codes_array[i] <= 3000:  # the order of binary files is [anode dinode anode dinode ...]
+                            clean_amplitudes[i] = codes_array[i]/4   # if anode is less than 3000, take anode value
+                            clean_amplitudes[i+1] = 0  # write next number as 0 
+                        else:   # if anode is more than 3000, take dinode
+                            clean_amplitudes[i] = codes_array[i + 1]/4 
+                            clean_amplitudes[i+1] = 1  # write next number as 1
 #                        clean_amplitudes[i+1] = int(bin(codes_array[i])[-1])
                         
                     clean_amplitudes_pack = tools.packed_bytes(
@@ -541,13 +541,13 @@ def make_static_amplitudes(file_to_process):
                 codes_array = tools.unpacked_from_bytes(
                     '<64h', chunk[codes_beginning_byte:codes_ending_byte])
                 for i in range(0, len(cleaned_amplitudes), 3):
-                    if codes_array[2*(i//3)] <= 3000:
+                    if codes_array[2*(i//3)] <= 3000:  # reads even elements
                         cleaned_amplitudes[i] =\
-                        codes_array[2*(i//3)]/4 - peds_array[2*(i//3)]
-                        cleaned_amplitudes[i+1] = 0
+                        codes_array[2*(i//3)]/4 - peds_array[2*(i//3)]  # writes to every third element
+                        cleaned_amplitudes[i+1] = 0   # next to every third
                     else:
                         cleaned_amplitudes[i] =\
-                        codes_array[2*(i//3) + 1]/4 - peds_array[2*(i//3) + 1]
+                        codes_array[2*(i//3) + 1]/4 - peds_array[2*(i//3) + 1]  # reads odd elements
                         cleaned_amplitudes[i+1] = 1
 #                    cleaned_amplitudes[i+1] = int(bin(codes_array[2*(i//3)])[-1])
 #                           ig_status = 0 if BOTH channels IS ignored
@@ -555,7 +555,7 @@ def make_static_amplitudes(file_to_process):
 #                           2 if HIGH IS NOT ignored, LOW IS ignored
 #                           3 if BOTH IS NOT ignored
                     cleaned_amplitudes[i+2] =\
-                    ig_array[2*(i//3)] + ig_array[2*(i//3) + 1]
+                    ig_array[2*(i//3)] + ig_array[2*(i//3) + 1]   # every third +2 element writes ignore status
                 cleaned_amplitudes_pack = tools.packed_bytes(
                     'fBB'*32,
                     cleaned_amplitudes)
